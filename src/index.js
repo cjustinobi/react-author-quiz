@@ -1,9 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { BrowserRouter, Route } from 'react-router-dom';
+import * as Redux from 'redux';
+import * as ReactRedux from 'react-redux';
 import './index.css';
 import AuthorQuiz from './AuthorQuiz';
+import AddAuthorForm from './AddAuthorForm'
 import * as serviceWorker from './serviceWorker';
-import { shuffle, sample } from 'underscore'
+import { shuffle, sample } from 'underscore';
 
 const authors = [
   {
@@ -57,20 +61,35 @@ function getTurnData(authors) {
   }
 }
 
-const state = {
-  turnData: getTurnData(authors),
-  highlight: ''
-};
-
-function onAnswerSelected(answer) {
-  const isCorrect = state.turnData.author.books.some(book => book === answer);
-  state.highlight = isCorrect ? 'correct' : 'wrong';
-  render()
+function reducer(state = { authors, turnData: getTurnData(authors), highlight: ''}, action) {
+  switch (action.type) {
+    case 'ANSWER_SELECTED':
+      const isCorrect = state.turnData.author.books.some(book => book ===  action.answer);
+      return  Object.assign({}, state, {highlight: isCorrect ? 'correct' : 'wrong'});
+    case 'CONTINUE':
+      return Object.assign({}, state, {highlight: '', turnData: getTurnData(state.authors)});
+    case 'ADD_AUTHOR':
+      return Object.assign({}, state, { authors: state.authors.concat(action.author) });
+    default: return state;
+  }
 }
 
-function render() {
-  ReactDOM.render(<AuthorQuiz {...state} onAnswerSelected={onAnswerSelected}/>, document.getElementById('root'));
-}
+let store = Redux.createStore(reducer, window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__());
 
-render();
+const AuthorFormWrapper = () =>
+    <ReactRedux.Provider store={store}>
+      <AddAuthorForm />
+    </ReactRedux.Provider>
+
+
+  ReactDOM.render(
+      <BrowserRouter>
+        <ReactRedux.Provider store={store}>
+          <Route exact path="/" component={AuthorQuiz} />
+          <Route path="/add" component={AuthorFormWrapper} />
+        </ReactRedux.Provider>
+      </BrowserRouter>
+      , document.getElementById('root')
+  );
+
 serviceWorker.unregister();

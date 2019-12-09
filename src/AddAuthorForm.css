@@ -1,0 +1,16 @@
+.add-author-form {
+  width: 80%;
+  margin: 50px 10%;
+}
+
+.text-input {
+  margin-bottom: 20px;
+}
+
+.text-input > label {
+  display: block;
+}
+
+button {
+  margin-top: 12px;
+}
